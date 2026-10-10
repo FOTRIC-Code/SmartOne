@@ -1,0 +1,120 @@
+#!/bin/sh
+### S14_Upgrade — single app slot + backup rollback ###
+
+PARKIA_ROOT="/userdata/parkia"
+APP_DIR="${PARKIA_ROOT}/app"
+BACKUP_DIR="${PARKIA_ROOT}/backup"
+
+log()
+{
+	echo "[Upgrade] $*" >&2
+}
+
+meta_get()
+{
+	file="$1"
+	key="$2"
+	sed -n "s/^${key}=//p" "${file}" 2>/dev/null | sed -n '1p'
+}
+
+slot_version()
+{
+	meta_get "$1" version
+}
+
+valid_app()
+{
+	dir="$1"
+	meta="${dir}/app_meta"
+
+	[ -f "${meta}" ] || return 1
+	[ -n "$(slot_version "${meta}")" ] || return 1
+	[ -f "${dir}/bin/net_app" ] || return 1
+	return 0
+}
+
+write_app_meta()
+{
+	dir="$1"
+	version="$2"
+	mkdir -p "${dir}"
+	echo "version=${version}" > "${dir}/app_meta"
+}
+
+bind_one()
+{
+	src="$1"
+	dst="$2"
+
+	[ -e "${src}" ] || return 0
+	mkdir -p "$(dirname "${dst}")"
+	# Ensure dst exists as a bind target (file or dir).
+	if [ -d "${src}" ]; then
+		mkdir -p "${dst}"
+	elif [ ! -e "${dst}" ]; then
+		touch "${dst}" 2>/dev/null || true
+	fi
+	mount --bind "${src}" "${dst}" 2>/dev/null || \
+		log "bind ${src} -> ${dst} failed"
+}
+
+init_app_from_default()
+{
+	dir="$1"
+
+	rm -rf "${dir}/bin" "${dir}/www"
+	mkdir -p "${dir}/bin" "${dir}/www"
+	if [ -f /usr/bin/main_app ]; then
+		cp -af /usr/bin/main_app "${dir}/bin/main_app"
+	fi
+	if [ -f /usr/bin/net_app ]; then
+		cp -af /usr/bin/net_app "${dir}/bin/net_app"
+	fi
+	if [ -f /usr/bin/fab_app ]; then
+		cp -af /usr/bin/fab_app "${dir}/bin/fab_app"
+	fi
+	if [ -f /usr/bin/discovery_app ]; then
+		cp -af /usr/bin/discovery_app "${dir}/bin/discovery_app"
+	fi
+	if [ -d /var/www ]; then
+		cp -arf /var/www/. "${dir}/www/"
+	fi
+	write_app_meta "${dir}" "0.0.0.0"
+}
+
+restore_backup_to_app()
+{
+	log "rolling back: restore ${BACKUP_DIR} -> ${APP_DIR}"
+	rm -rf "${APP_DIR}/bin" "${APP_DIR}/www" "${APP_DIR}/app_meta"
+	mkdir -p "${APP_DIR}"
+	cp -arf "${BACKUP_DIR}/." "${APP_DIR}/"
+}
+
+mkdir -p "${PARKIA_ROOT}" "${APP_DIR}" "${BACKUP_DIR}"
+
+if valid_app "${APP_DIR}"; then
+	app_use="${APP_DIR}"
+elif valid_app "${BACKUP_DIR}"; then
+	log "active app invalid, rollback from backup"
+	restore_backup_to_app
+	app_use="${APP_DIR}"
+else
+	log "no valid app, initialize from squashfs defaults"
+	init_app_from_default "${APP_DIR}"
+	app_use="${APP_DIR}"
+fi
+
+if [ -n "${app_use}" ] && valid_app "${app_use}"; then
+	# Slots created before main_app joined the app slot have no copy yet.
+	if [ ! -f "${app_use}/bin/main_app" ] && [ -f /usr/bin/main_app ]; then
+		cp -af /usr/bin/main_app "${app_use}/bin/main_app"
+	fi
+	bind_one "${app_use}/www" /var/www
+	bind_one "${app_use}/bin/main_app" /usr/bin/main_app
+	bind_one "${app_use}/bin/net_app" /usr/bin/net_app
+	bind_one "${app_use}/bin/fab_app" /usr/bin/fab_app
+	bind_one "${app_use}/bin/discovery_app" /usr/bin/discovery_app
+	log "app=${app_use##*/} version=$(slot_version "${app_use}/app_meta")"
+else
+	log "no usable app after init/rollback"
+fi

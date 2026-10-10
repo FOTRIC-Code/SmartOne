@@ -1,0 +1,44 @@
+#!/bin/sh
+
+DAEMON="/usr/bin/discovery_app"
+PIDFILE="/var/run/discovery_app.pid"
+
+start() {
+	if [ ! -x "$DAEMON" ]; then
+		echo "discovery_app not installed, skip"
+		return 0
+	fi
+
+	if [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
+		echo "discovery_app already running"
+		return 0
+	fi
+
+	echo "Starting discovery_app"
+	start-stop-daemon -S -b -m -p "$PIDFILE" -x "$DAEMON"
+}
+
+stop() {
+	echo "Stopping discovery_app"
+	start-stop-daemon -K -p "$PIDFILE" 2>/dev/null || true
+	rm -f "$PIDFILE"
+}
+
+case "$1" in
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	restart|reload)
+		stop
+		start
+		;;
+	*)
+		echo "Usage: $0 {start|stop|restart}"
+		exit 1
+		;;
+esac
+
+exit 0

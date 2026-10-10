@@ -1,0 +1,102 @@
+#!/bin/sh
+#
+# Overrides the bluez5_utils S40bluetoothd.
+#
+# hci0 only exists after wifibt-init.sh loads aic_btusb and download_patch()
+# completes, which is several seconds after S40 runs. Starting bluetoothd on
+# the boot path makes it sit on a missing adapter, so wait for hci0 in the
+# background instead of blocking rcS.
+
+DAEMON="bluetoothd"
+PIDFILE="/var/run/$DAEMON.pid"
+
+BLUETOOTHD_ARGS="-n -d"
+
+# Seconds to wait for aic_btusb to bring up hci0 before starting anyway.
+HCI_WAIT=30
+
+# shellcheck source=/dev/null
+[ -r "/etc/default/$DAEMON" ] && . "/etc/default/$DAEMON"
+
+running() {
+	start-stop-daemon -K -t -q -p "$PIDFILE" 2>/dev/null
+}
+
+spawn() {
+	# shellcheck disable=SC2086 # we need the word splitting
+	start-stop-daemon -S -q -m -b -p "$PIDFILE" -x "/usr/libexec/bluetooth/$DAEMON" \
+		-- $BLUETOOTHD_ARGS
+}
+
+start() {
+	if running; then
+		echo "$DAEMON already running"
+		return 0
+	fi
+
+	if [ -d /sys/class/bluetooth/hci0 ]; then
+		printf 'Starting %s: ' "$DAEMON"
+		if spawn; then
+			echo "OK"
+			return 0
+		fi
+		echo "FAIL"
+		return 1
+	fi
+
+	echo "Deferring $DAEMON until hci0 appears"
+	(
+		i=0
+		while [ "$i" -lt "$HCI_WAIT" ]; do
+			[ -d /sys/class/bluetooth/hci0 ] && break
+			i=$((i + 1))
+			sleep 1
+		done
+
+		if [ ! -d /sys/class/bluetooth/hci0 ]; then
+			echo "hci0 still absent after ${HCI_WAIT}s, starting $DAEMON anyway"
+		fi
+
+		running || spawn
+	) &
+
+	return 0
+}
+
+stop() {
+	printf 'Stopping %s: ' "$DAEMON"
+	start-stop-daemon -K -q -p "$PIDFILE"
+	status=$?
+	if [ "$status" -eq 0 ]; then
+		echo "OK"
+	else
+		echo "FAIL"
+	fi
+	return "$status"
+}
+
+restart() {
+	stop
+	sleep 1
+	start
+}
+
+reload() {
+	printf 'Reloading %s: ' "$DAEMON"
+	start-stop-daemon -K -s HUP -q -p "$PIDFILE"
+	status=$?
+	if [ "$status" -eq 0 ]; then
+		echo "OK"
+	else
+		echo "FAIL"
+	fi
+	return "$status"
+}
+
+case "$1" in
+	start|stop|restart|reload)
+		"$1";;
+	*)
+		echo "Usage: $0 {start|stop|restart|reload}"
+		exit 1
+esac

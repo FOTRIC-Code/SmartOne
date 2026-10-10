@@ -1,0 +1,6 @@
+export const ACCESS_TOKEN = 'ACCESS-TOKEN';
+export const CURRENT_USER = 'CURRENT-USER';
+export const IS_SCREENLOCKED = 'IS-SCREENLOCKED';
+export const TABS_ROUTES = 'TABS-ROUTES';
+export const LOCALE_I18N = 'LOCALE_I18N';
+export const LOGIN_REMEMBER = 'LOGIN-REMEMBER';

@@ -1,0 +1,156 @@
+#!/bin/sh
+#
+# S15_SD — the SD card is the only valid volume for /userdata/parkia/record.
+#
+# Everything about the card lives in this script: mount at boot, re-mount when
+# a card is inserted later, unmount when it disappears, and publication of the
+# ready flag. The flag is created on the card itself, so it is invisible
+# whenever the card is absent, unmounted, read-only or full — applications test
+# for that single file and never look at devices, mounts or free space.
+#
+
+SD_DEV="/dev/mmcblk0p1"
+RECORD_DIR="/userdata/parkia/record"
+READY_FLAG="${RECORD_DIR}/.record_ready"
+MIN_FREE_KB=16384
+POLL_SEC=5
+PIDFILE="/var/run/sdcard.pid"
+
+log()
+{
+	echo "[Sdcard] $*" >&2
+}
+
+is_mounted()
+{
+	grep -q "^${SD_DEV} ${RECORD_DIR} " /proc/mounts 2>/dev/null
+}
+
+mount_sd()
+{
+	mount -t vfat -o rw,noatime,utf8 "${SD_DEV}" "${RECORD_DIR}" \
+		2>/dev/null && return 0
+	mount -t exfat -o rw,noatime "${SD_DEV}" "${RECORD_DIR}" \
+		2>/dev/null && return 0
+	mount -t auto -o rw,noatime "${SD_DEV}" "${RECORD_DIR}" \
+		2>/dev/null && return 0
+	return 1
+}
+
+enough_space()
+{
+	# Last line, third column from the right: "available" in both busybox
+	# and coreutils df, even when a long device name wraps the row.
+	free_kb=$(df -k "${RECORD_DIR}" 2>/dev/null | tail -n 1 |
+		  awk '{ print $(NF - 2) }')
+
+	[ -n "${free_kb}" ] && [ "${free_kb}" -ge "${MIN_FREE_KB}" ]
+}
+
+clear_ready()
+{
+	rm -f "${READY_FLAG}" 2>/dev/null
+}
+
+# 0 ready, 1 no card, 2 mount failed, 3 card unusable (read-only or full).
+refresh()
+{
+	mkdir -p "${RECORD_DIR}"
+
+	if [ ! -b "${SD_DEV}" ]; then
+		if is_mounted; then
+			umount -l "${RECORD_DIR}" 2>/dev/null
+		fi
+		clear_ready
+		return 1
+	fi
+
+	if ! is_mounted && ! mount_sd; then
+		clear_ready
+		return 2
+	fi
+
+	# touch doubles as the writability probe: a read-only card fails here.
+	if ! enough_space || ! touch "${READY_FLAG}" 2>/dev/null; then
+		clear_ready
+		return 3
+	fi
+
+	return 0
+}
+
+state_text()
+{
+	case "$1" in
+		0) echo "ready (${SD_DEV} mounted on ${RECORD_DIR})" ;;
+		1) echo "unavailable: no SD card at ${SD_DEV}" ;;
+		2) echo "unavailable: mount ${SD_DEV} failed" ;;
+		*) echo "unavailable: card read-only or below ${MIN_FREE_KB}KB free" ;;
+	esac
+}
+
+# Cards are inserted and pulled at runtime, so the state is re-evaluated on a
+# slow poll instead of only at boot. Logs are emitted on transitions only.
+monitor()
+{
+	last=""
+
+	while :; do
+		refresh
+		state=$?
+		if [ "${state}" != "${last}" ]; then
+			log "record path $(state_text ${state})"
+		fi
+		last="${state}"
+		sleep "${POLL_SEC}"
+	done
+}
+
+start()
+{
+	if [ -f "${PIDFILE}" ] && kill -0 "$(cat "${PIDFILE}")" 2>/dev/null; then
+		echo "sdcard monitor already running"
+		return 0
+	fi
+
+	refresh
+	log "record path $(state_text $?)"
+	start-stop-daemon -S -b -m -p "${PIDFILE}" -x "$0" -- monitor
+}
+
+stop()
+{
+	start-stop-daemon -K -p "${PIDFILE}" 2>/dev/null || true
+	rm -f "${PIDFILE}"
+	clear_ready
+	if is_mounted; then
+		umount "${RECORD_DIR}" 2>/dev/null || \
+			umount -l "${RECORD_DIR}" 2>/dev/null || true
+	fi
+}
+
+case "$1" in
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	restart|reload)
+		stop
+		start
+		;;
+	status)
+		refresh
+		echo "record path $(state_text $?)"
+		;;
+	monitor)
+		monitor
+		;;
+	*)
+		echo "Usage: $0 {start|stop|restart|status}"
+		exit 1
+		;;
+esac
+
+exit 0

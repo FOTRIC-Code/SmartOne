@@ -1,0 +1,82 @@
+#!/bin/sh
+#
+# S55main_app — System entry-point daemon.
+#
+# main_app is the SOLE boot-time daemon. It:
+#   1. Reads /etc/cfg/provision/state/config.json
+#   2. If provisioned: connects Wi-Fi, then launches net_app
+#   3. If not provisioned: starts BLE advertising, waits for phone config
+#   4. Runs in background for re-provisioning via BLE
+#
+# net_app does NOT have its own init script. It is always launched
+# and managed by main_app after Wi-Fi is available.
+#
+
+DAEMON="/usr/bin/main_app"
+PIDFILE="/var/run/main_app.pid"
+APP_CFG="/etc/cfg/main_app/config.json"
+
+managed_app_name() {
+	local app_bin app_name
+
+	app_bin=$(sed -n 's/.*"app_bin"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' \
+		"$APP_CFG" 2>/dev/null | sed -n '1p')
+	if [ -z "$app_bin" ]; then
+		echo "net_app"
+		return
+	fi
+
+	app_name=${app_bin##*/}
+	if [ -z "$app_name" ]; then
+		echo "net_app"
+	else
+		echo "$app_name"
+	fi
+}
+
+start() {
+	if [ ! -x "$DAEMON" ]; then
+		echo "main_app not installed, skip"
+		return 0
+	fi
+
+	if [ -f "$PIDFILE" ] && kill -0 "$(cat "$PIDFILE")" 2>/dev/null; then
+		echo "main_app already running"
+		return 0
+	fi
+
+	echo "Starting main_app (system entry point)"
+	start-stop-daemon -S -b -m -p "$PIDFILE" -x "$DAEMON"
+}
+
+stop() {
+	app_name=$(managed_app_name)
+
+	echo "Stopping main_app"
+	# Stop the managed app first since main_app owns its lifecycle.
+	if pidof "$app_name" >/dev/null 2>&1; then
+		echo "Stopping ${app_name} (managed by main_app)"
+		killall "$app_name" 2>/dev/null
+	fi
+	start-stop-daemon -K -p "$PIDFILE" 2>/dev/null || true
+	rm -f "$PIDFILE"
+}
+
+case "$1" in
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	restart|reload)
+		stop
+		start
+		;;
+	*)
+		echo "Usage: $0 {start|stop|restart}"
+		exit 1
+		;;
+esac
+
+exit 0

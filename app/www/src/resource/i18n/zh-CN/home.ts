@@ -1,0 +1,17 @@
+export default {
+  title: '设备',
+  online: '在线',
+  offline: '离线',
+  streaming: '画面推流中',
+  streamingOff: '画面未推流',
+  wifi: 'Wi-Fi',
+  ip: 'IP',
+  firmware: '固件',
+  model: '型号',
+  serial: '序列号',
+  openLive: '打开画面',
+  changeWifi: '更换网络',
+  restart: '重启设备',
+  restarting: '正在重启…',
+  loadFailed: '无法读取设备状态',
+};

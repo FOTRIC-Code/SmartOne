@@ -1,0 +1,6 @@
+# This bluetoothd accepts -f/--configfile, not -c.
+# Stock /etc/main.conf leaves ControllerMode dual, which makes BlueZ
+# issue Write Extended Inquiry Response. On AIC8800DC that command
+# often never completes; MGMT then reports Authentication Failed (0x05)
+# because the kernel maps -ETIMEDOUT to that status.
+BLUETOOTHD_ARGS="-n -d -f /etc/bluetooth/main.conf"

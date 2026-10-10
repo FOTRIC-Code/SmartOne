@@ -1,0 +1,138 @@
+[
+    {
+        "value": "UTC-12:00",
+        "label": "(UTC-12:00) International Date Line West"
+    },
+    {
+        "value": "UTC-11:00",
+        "label": "(UTC-11:00) Midway Island, Samoa"
+    },
+    {
+        "value": "UTC-10:00",
+        "label": "(UTC-10:00) Hawaii"
+    },
+    {
+        "value": "UTC-9:00",
+        "label": "(UTC-09:00) Alaska"
+    },
+    {
+        "value": "UTC-8:00",
+        "label": "(UTC-08:00) Pacific Time (US & Canada)"
+    },
+    {
+        "value": "UTC-7:00",
+        "label": "(UTC-07:00) Mountain Time (US & Canada)"
+    },
+    {
+        "value": "UTC-6:00",
+        "label": "(UTC-06:00) Central Time (US & Canada)"
+    },
+    {
+        "value": "UTC-5:00",
+        "label": "(UTC-05:00) Eastern Time (US & Canada)"
+    },
+    {
+        "value": "UTC-4:30",
+        "label": "(UTC-04:30) Caracas"
+    },
+    {
+        "value": "UTC-4:00",
+        "label": "(UTC-04:00) Atlantic Time (Canada)"
+    },
+    {
+        "value": "UTC-3:30",
+        "label": "(UTC-03:30) Newfoundland"
+    },
+    {
+        "value": "UTC-3:00",
+        "label": "(UTC-03:00) Georgetown, Brasilia"
+    },
+    {
+        "value": "UTC-2:00",
+        "label": "(UTC-02:00) Mid-Atlantic"
+    },
+    {
+        "value": "UTC-1:00",
+        "label": "(UTC-01:00) Cape Verde Islands, Azores"
+    },
+    {
+        "value": "UTC+0:00",
+        "label": "(UTC+00:00) Dublin, Edinburgh, London"
+    },
+    {
+        "value": "UTC+1:00",
+        "label": "(UTC+01:00) Amsterdam, Berlin, Rome, Paris"
+    },
+    {
+        "value": "UTC+2:00",
+        "label": "(UTC+02:00) Athens, Jerusalem, Istanbul"
+    },
+    {
+        "value": "UTC+3:00",
+        "label": "(UTC+03:00) Baghdad, Kuwait, Moscow"
+    },
+    {
+        "value": "UTC+3:30",
+        "label": "(UTC+03:30) Tehran"
+    },
+    {
+        "value": "UTC+4:00",
+        "label": "(UTC+04:00) Caucasus Standard Time"
+    },
+    {
+        "value": "UTC+4:30:00",
+        "label": "(UTC+04:30) Kabul"
+    },
+    {
+        "value": "UTC+5:00",
+        "label": "(UTC+05:00) Islamabad, Karachi, Tashkent"
+    },
+    {
+        "value": "UTC+5:30",
+        "label": "(UTC+05:30) Madras, Mumbai, New Delhi"
+    },
+    {
+        "value": "UTC+5:45",
+        "label": "(UTC+05:45) Kathmandu"
+    },
+    {
+        "value": "UTC+6:00",
+        "label": "(UTC+06:00) Almaty, Novosibirsk, Dhaka"
+    },
+    {
+        "value": "UTC+6:30",
+        "label": "(UTC+06:30) Yangon"
+    },
+    {
+        "value": "UTC+7:00",
+        "label": "(UTC+07:00) Bangkok, Hanoi, Jakarta"
+    },
+    {
+        "value": "UTC+8:00",
+        "label": "(UTC+08:00) Beijing, Urumqi, Singapore"
+    },
+    {
+        "value": "UTC+9:00",
+        "label": "(UTC+09:00) Seoul, Tokyo, Osaka, Sapporo"
+    },
+    {
+        "value": "UTC+9:30",
+        "label": "(UTC+09:30) Adelaide, Darwin"
+    },
+    {
+        "value": "UTC+10:00",
+        "label": "(UTC+10:00) Melbourne, Sydney, Canberra"
+    },
+    {
+        "value": "UTC+11:00",
+        "label": "(UTC+11:00) Magadan, Solomon Islands"
+    },
+    {
+        "value": "UTC+12:00",
+        "label": "(UTC+12:00) Auckland, Wellington"
+    },
+    {
+        "value": "UTC+13:00",
+        "label": "(UTC+13:00) Nuku'alofa"
+    }
+]

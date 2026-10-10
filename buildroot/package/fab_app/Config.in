@@ -1,0 +1,4 @@
+config BR2_PACKAGE_FAB_APP
+	bool "fab_app"
+	help
+	  Parkia.Cube factory/production app (HSI, seal, CPU serial on :8088).

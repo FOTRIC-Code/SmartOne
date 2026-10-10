@@ -1,0 +1,4 @@
+config BR2_PACKAGE_DISCOVERY_APP
+	bool "discovery_app"
+	help
+	  Parkia.Cube LAN UDP multicast device discovery (239.255.255.250:9712).

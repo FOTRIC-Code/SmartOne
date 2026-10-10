@@ -1,0 +1,8 @@
+config BR2_PACKAGE_MAIN_APP
+	bool "main_app"
+	select BR2_PACKAGE_DBUS
+	select BR2_PACKAGE_RKWIFIBT_APP
+	help
+	  Parkia.Cube main entry-point daemon. Handles BLE advertising,
+	  GATT service, Wi-Fi credential reception, and triggers net_app
+	  once provisioning succeeds.

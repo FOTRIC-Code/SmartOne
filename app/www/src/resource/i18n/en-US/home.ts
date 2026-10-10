@@ -1,0 +1,17 @@
+export default {
+  title: 'Device',
+  online: 'Online',
+  offline: 'Offline',
+  streaming: 'Streaming',
+  streamingOff: 'Not streaming',
+  wifi: 'Wi-Fi',
+  ip: 'IP',
+  firmware: 'Firmware',
+  model: 'Model',
+  serial: 'Serial',
+  openLive: 'Open live view',
+  changeWifi: 'Change Wi-Fi',
+  restart: 'Restart',
+  restarting: 'Restarting…',
+  loadFailed: 'Could not load device status',
+};

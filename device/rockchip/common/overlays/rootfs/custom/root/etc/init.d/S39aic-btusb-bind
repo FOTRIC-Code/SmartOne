@@ -1,0 +1,122 @@
+#!/bin/sh
+### BEGIN INIT INFO
+# Provides:       aic-btusb-bind
+# Required-Start: $local_fs $syslog
+# Required-Stop:  $local_fs
+# Default-Start:  S
+# Default-Stop:   K
+# Description:    Fallback bind of unbound AIC BT USB to aic_btusb
+### END INIT INFO
+#
+# Primary path is kernel BTUSB_IGNORE for a69c:88dc so aic_btusb probes
+# at first enum and download_patch() runs before bluetoothd.
+# This hook is fallback only: bind if the BT interface is still unbound.
+# Do not live-rebind (unbind generic btusb). Do not hciconfig hci0 down.
+
+AIC_BT_ID="a69c:88dc"
+AIC_BTUSB_DRIVER="/sys/bus/usb/drivers/aic_btusb"
+AIC_BTUSB_MODULE="/lib/modules/aic_btusb.ko"
+
+find_aic_usb_device()
+{
+	for devdir in /sys/bus/usb/devices/*; do
+		[ -r "$devdir/idVendor" ] || continue
+		[ -r "$devdir/idProduct" ] || continue
+
+		vid=$(sed 's/^0x//' "$devdir/idVendor")
+		pid=$(sed 's/^0x//' "$devdir/idProduct")
+		if [ "$vid:$pid" = "$AIC_BT_ID" ]; then
+			basename "$devdir"
+			return 0
+		fi
+	done
+
+	return 1
+}
+
+interface_driver_path()
+{
+	readlink -f "/sys/bus/usb/devices/$1/driver" 2>/dev/null || true
+}
+
+bind_aic_btusb()
+{
+	if [ ! -x /usr/bin/wifibt-util.sh ]; then
+		return 0
+	fi
+
+	if [ "$(/usr/bin/wifibt-util.sh vendor 2>/dev/null)" != "Aicsemi" ] ||
+	   [ "$(/usr/bin/wifibt-util.sh bus 2>/dev/null)" != "usb" ] ||
+	   [ "$(/usr/bin/wifibt-util.sh id 2>/dev/null)" != "$AIC_BT_ID" ]; then
+		return 0
+	fi
+
+	for _ in $(seq 50); do
+		USB_DEV=$(find_aic_usb_device || true)
+		[ -n "$USB_DEV" ] && break
+		sleep 0.2
+	done
+
+	if [ -z "$USB_DEV" ]; then
+		echo "AIC BT USB device not present, skip"
+		return 0
+	fi
+
+	if [ "$(interface_driver_path "$USB_DEV:1.0")" = "$AIC_BTUSB_DRIVER" ]; then
+		echo "AIC BT already bound to aic_btusb"
+		return 0
+	fi
+
+	if [ ! -f "$AIC_BTUSB_MODULE" ]; then
+		echo "aic_btusb module missing, skip"
+		return 0
+	fi
+
+	# Do not hciconfig hci0 down/up. That MGMT adapter_stop wedges AIC8800DC
+	# (dwc2_hc_halt, then aic_btusb probe with 1 TX / 0 HCI events).
+
+	if [ ! -d "$AIC_BTUSB_DRIVER" ]; then
+		insmod "$AIC_BTUSB_MODULE" || true
+		sleep 0.2
+	fi
+
+	# Fallback only: bind IF 1.0 if it is still unbound after BTUSB_IGNORE.
+	# Never unbind a live driver (generic btusb rebind resets AIC USB parent).
+	# Never Wi-Fi IF 1.2. Never hciconfig hci0 down/up.
+	BT_INTF="$USB_DEV:1.0"
+	CUR_DRV="$(interface_driver_path "$BT_INTF")"
+	if [ -n "$CUR_DRV" ]; then
+		echo "AIC BT already claimed by $(basename "$CUR_DRV"), skip live rebind"
+		return 0
+	fi
+
+	if [ ! -d "$AIC_BTUSB_DRIVER" ]; then
+		echo "aic_btusb driver sysfs missing, skip"
+		return 0
+	fi
+
+	echo "$BT_INTF" > "$AIC_BTUSB_DRIVER/bind"
+	sleep 1
+
+	if [ "$(interface_driver_path "$USB_DEV:1.0")" = "$AIC_BTUSB_DRIVER" ]; then
+		echo "Bound AIC BT to aic_btusb"
+		return 0
+	fi
+
+	echo "Failed to bind AIC BT to aic_btusb"
+	return 1
+}
+
+case "$1" in
+	start|restart|"")
+		bind_aic_btusb
+		;;
+	stop)
+		;;
+	*)
+		echo "Usage: $0 {start|stop|restart}"
+		exit 1
+		;;
+esac
+
+exit 0

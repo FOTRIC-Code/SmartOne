@@ -1,0 +1,7 @@
+config BR2_PACKAGE_NET_APP
+	bool "net_app"
+	select BR2_PACKAGE_LIBUSB
+	select BR2_PACKAGE_OPENSSL
+	help
+	  Parkia.Cube network application (HTTP API, provisioning, Wi-Fi, RTSP).
+	  BLE provisioning is handled by main_app.

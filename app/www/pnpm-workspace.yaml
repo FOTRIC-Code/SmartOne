@@ -1,0 +1,17 @@
+# 本文件存在的意义是声明 allowBuilds；但 pnpm 10+ 要求 pnpm-workspace.yaml
+# 必须包含 packages 字段，否则 pnpm install 报 "packages field missing or empty"。
+# www 是单包项目，把当前目录声明为唯一 workspace 包即可。
+packages:
+  - .
+
+# pnpm 10+ 默认拦截依赖的 postinstall 脚本（ERR_PNPM_IGNORED_BUILDS）。
+# esbuild 需要 postinstall 放置平台二进制，vue-demi 需要按 Vue 版本切换 API，
+# 两者必须允许，否则 make build / build.sh 在 pnpm install 阶段失败。
+# 两种写法并存以兼容不同版本：pnpm 10 用 onlyBuiltDependencies，
+# pnpm 11+ 用 allowBuilds；不认识的字段只会告警不会报错。
+onlyBuiltDependencies:
+  - esbuild
+  - vue-demi
+allowBuilds:
+  esbuild: true
+  vue-demi: true

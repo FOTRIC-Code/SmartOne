@@ -1,0 +1,16 @@
+{
+  "steps": [
+    {
+      "command": "info",
+      "expect": {
+        "code": 0
+      }
+    },
+    {
+      "command": "status",
+      "expect": {
+        "code": 0
+      }
+    }
+  ]
+}

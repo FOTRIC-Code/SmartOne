@@ -1,0 +1,13 @@
+Copyright (c) 2021-present fotric.cn. All rights reserved.
+
+libIRtekFileSDK.so, libIRtekUVCSDK.so and the headers under include/ are
+proprietary software of fotric.cn, distributed in binary form only.
+
+They may be redistributed and used solely as part of firmware built from this
+SDK for devices supplied by fotric.cn. Reverse engineering, decompiling,
+disassembling, or redistribution separately from this SDK is not permitted
+without prior written permission from fotric.cn.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED. IN NO EVENT SHALL fotric.cn BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY ARISING FROM THE USE OF THE SOFTWARE.

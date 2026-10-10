@@ -1,0 +1,1299 @@
+{
+  "info": {
+    "_postman_id": "parkia-cube-net-app-api",
+    "name": "Parkia.Cube net_app HTTP API",
+    "description": "Parkia.Cube `net_app` HTTP API（mongoose）。\n\n## 导入（两个标准文件）\n1. Postman → Import\n2. **同时选中** 本目录两个文件：\n   - `Parkia.Cube.postman_collection.json`\n   - `Parkia.Cube.postman_environment.json`\n3. 右上角 Environment 选择 **Parkia.Cube Device**\n\n## 使用\n- SoftAP：`base_url=http://192.168.4.1`；配网后改为 STA IP\n- **Wi-Fi 配网走 BLE**，本集合仅含 HTTP 管理接口\n- 已配网接口默认 Basic Auth（`basic_user`/`basic_pass`）\n\n## 约定\n- 路径无 `/api/v1`，如 `{{base_url}}/system/status`\n- HTTP 通常 200；业务看 JSON `code`（0=成功）\n- 详见 `app/net_app/API.md`\n",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "basic",
+    "basic": [
+      {
+        "key": "username",
+        "value": "{{basic_user}}",
+        "type": "string"
+      },
+      {
+        "key": "password",
+        "value": "{{basic_pass}}",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "try {",
+          "  const j = pm.response.json();",
+          "  console.log(\"code=\", j.code, \"message=\", j.message);",
+          "} catch (e) {}"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "1. 状态 (open)",
+      "description": "开放只读状态。Wi-Fi 配网请使用 BLE（见 app/net_app/API.md §1）。",
+      "item": [
+        {
+          "name": "GET system/status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/system/status",
+            "description": "网络摘要：provision_state / network_mode / ssid / ip",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. 基础管理",
+      "description": "已配网需 Basic Auth",
+      "item": [
+        {
+          "name": "GET device_info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/system/device_info",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT device_info (name only)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/system/device_info",
+            "description": "仅修改显示名 name",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"{{device_name}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET time",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/system/time",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT time (local)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/system/time",
+            "description": "time_mode: 0=LOCAL, 1=NTP",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"time_mode\": 0,\n  \"local_time\": \"2026-08-27 14:00:00\",\n  \"time_zone\": \"UTC+08:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT time (ntp mode)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/system/time",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"time_mode\": 1,\n  \"local_time\": \"\",\n  \"time_zone\": \"UTC+08:00\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET ntp_server",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/system/ntp_server",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT ntp_server",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/system/ntp_server",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"host_name\": \"pool.ntp.org\",\n  \"port_no\": 123,\n  \"syn_interval\": 1440\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET networks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/system/networks",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET networks/{id}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/system/networks/1",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT networks/{id}",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/system/networks/1",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 1,\n  \"name\": \"wlan0\",\n  \"ip\": \"\",\n  \"netmask\": \"255.255.255.0\",\n  \"dhcp\": true,\n  \"gateway\": [\n    \"\"\n  ],\n  \"dns\": [\n    \"\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT networks (batch)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/system/networks",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"id\": 1,\n    \"name\": \"wlan0\",\n    \"ip\": \"\",\n    \"netmask\": \"255.255.255.0\",\n    \"dhcp\": true,\n    \"gateway\": [\n      \"\"\n    ],\n    \"dns\": [\n      \"\"\n    ]\n  }\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET port",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/system/port",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT port",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/system/port",
+            "description": "端口变更可能需重启 net_app 才生效",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"http_port_no\": 80,\n  \"rtsp_port_no\": 554,\n  \"rtp_port_no\": 8001\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT device_restart",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{base_url}}/system/device_restart",
+            "description": "约 1 秒后 reboot，慎用"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT device_reset",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "url": "{{base_url}}/system/device_reset",
+            "description": "工厂复位（保留 provision/seal/hsi），不自动重启"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "POST device_upgrade (multipart)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{basic_user}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{basic_pass}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": [],
+                  "description": "选择 parkia_cube_tiny_fw_V{x.y.z.w}.img"
+                }
+              ]
+            },
+            "url": "{{base_url}}/system/device_upgrade",
+            "description": "multipart 字段 file 上传 tiny .img；成功后排队重启"
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. 视频流",
+      "description": "播放：rtsp://<ip>:554/video/101 ；WebRTC 信令 http://<ip>:8080",
+      "item": [
+        {
+          "name": "GET streaming/channels",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/streaming/channels",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET streaming/channels/{id}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/streaming/channels/{{stream_id}}",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET streaming/channels/{id}/status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/streaming/channels/{{stream_id}}/status",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. 系统状态 / 产测",
+      "description": "status 走 net_app {{base_url}}；产测走 fab_app {{fab_base_url}}（默认 :8088）",
+      "item": [
+        {
+          "name": "GET status (open)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/system/status",
+            "description": "net_app；始终开放",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET device_info (fab)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{fab_base_url}}/system/device_info",
+            "description": "fab_app：读 HSI device_info",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET sensor/sn (fab)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{fab_base_url}}/sensor/sn",
+            "description": "fab_app：OTP id@a（替代 system/cpu_serial）",
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });",
+                  "pm.test(\"sn present\", function () { pm.expect(j.data.sn).to.be.a('string'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT hsi (fab)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{fab_base_url}}/system/hsi",
+            "description": "fab_app：产测写入身份字段",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"model\": \"PK-C01\",\n  \"serial_no\": \"{{serial_no}}\",\n  \"id\": \"{{device_id}}\",\n  \"firmware_name\": \"net_app\",\n  \"firmware_version\": \"1.0.0.0\",\n  \"manufacture_date\": \"2026-01-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET seal (fab)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{fab_base_url}}/system/seal",
+            "description": "fab_app"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT seal (fab)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{fab_base_url}}/system/seal",
+            "description": "fab_app：sealed=true 出厂封存，清除 fab_app 安装/槽位文件后自动重启；sealed=false 仅更新标记",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sealed\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5. 智能报警",
+      "description": "",
+      "item": [
+        {
+          "name": "GET system/ftp",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/system/ftp",
+            "description": "获取报警 FTP 上传目标"
+          }
+        },
+        {
+          "name": "PUT system/ftp",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/system/ftp",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"use_ssl\": false,\n  \"ip\": \"192.168.1.10\",\n  \"port_no\": 21,\n  \"user_name\": \"alarm\",\n  \"pwd\": \"password\",\n  \"enable_annoy\": false,\n  \"path_template\": \"Parkia/{yyyyMMddHHmmss}.bmp\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "POST system/ftp/test",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/system/ftp/test",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"use_ssl\": false,\n  \"ip\": \"192.168.1.10\",\n  \"port_no\": 21,\n  \"user_name\": \"alarm\",\n  \"pwd\": \"password\",\n  \"enable_annoy\": false,\n  \"path_template\": \"Parkia/{yyyyMMddHHmmss}.bmp\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "GET system/webhook",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/system/webhook",
+            "description": "获取报警 Webhook 目标"
+          }
+        },
+        {
+          "name": "PUT system/webhook",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{base_url}}/system/webhook",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"url\": \"https://example.com/alarm\"\n}",
+              "options": { "raw": { "language": "json" } }
+            }
+          }
+        },
+        {
+          "name": "GET thermal/intrusion/alarm",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/thermal/intrusion/alarm",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT thermal/intrusion/alarm",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/thermal/intrusion/alarm",
+            "description": "sensitivity: 0=low 1=mid 2=high",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enabled\": true,\n  \"no_repeat_minutes\": 5,\n  \"sensitivity\": 1,\n  \"record_duration_sec\": 30\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET thermal/high_temp/alarm",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/thermal/high_temp/alarm",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT thermal/high_temp/alarm",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/thermal/high_temp/alarm",
+            "description": "marker_name 已移除",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enabled\": true,\n  \"no_repeat_minutes\": 3,\n  \"alarm_temp\": 38.5,\n  \"record_duration_sec\": 30\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET thermal/baby_monitor/alarm",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/thermal/baby_monitor/alarm",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT thermal/baby_monitor/alarm",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/thermal/baby_monitor/alarm",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enabled\": true,\n  \"no_repeat_minutes\": 5,\n  \"sensitivity\": 1,\n  \"record_duration_sec\": 30\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET thermal/body_temp/alarm",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/thermal/body_temp/alarm",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT thermal/body_temp/alarm",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/thermal/body_temp/alarm",
+            "description": "marker_name 已移除",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"enabled\": true,\n  \"slope_warning\": 0.05,\n  \"record_duration_sec\": 30\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET record_duration (via intrusion/alarm)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/thermal/intrusion/alarm",
+            "description": ""
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT record_duration (via intrusion/alarm)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/thermal/intrusion/alarm",
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"record_duration_sec\": 30\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "GET alarm/triggers/{type}",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/alarm/triggers/{{alarm_type}}",
+            "description": "按类型独立配置 FTP、Webhook、录像联动；type 使用数字枚举：2 入侵、3 高温、4 婴儿踢被、5 体温监护"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });",
+                  "pm.test(\"record linkage field exists\", function () { pm.expect(j.data).to.have.property(\"trigger_record_enabled\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PUT alarm/triggers/{type}",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{base_url}}/alarm/triggers/{{alarm_type}}",
+            "description": "三个联动开关按报警类型独立保存；FTP/Webhook 目标参数使用 system/ftp 与 system/webhook 全局配置",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": {{alarm_type}},\n  \"trigger_ftp_enabled\": false,\n  \"trigger_webhook_enabled\": false,\n  \"trigger_record_enabled\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "6. 鉴权示例",
+      "description": "",
+      "item": [
+        {
+          "name": "GET device_info (Basic)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/system/device_info",
+            "description": "已配网后：任意非空 Basic 用户名即可（当前实现）",
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "username",
+                  "value": "{{basic_user}}",
+                  "type": "string"
+                },
+                {
+                  "key": "password",
+                  "value": "{{basic_pass}}",
+                  "type": "string"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"HTTP 200\", function () { pm.response.to.have.status(200); });",
+                  "const j = pm.response.json();",
+                  "pm.test(\"business code == 0\", function () { pm.expect(j.code).to.eql(0); });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://192.168.4.1",
+      "type": "string"
+    },
+    {
+      "key": "device_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "serial_no",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "setup_code",
+      "value": "123456",
+      "type": "string"
+    },
+    {
+      "key": "wifi_ssid",
+      "value": "YourHomeWiFi",
+      "type": "string"
+    },
+    {
+      "key": "wifi_pwd",
+      "value": "YourWiFiPassword",
+      "type": "string"
+    },
+    {
+      "key": "basic_user",
+      "value": "admin",
+      "type": "string"
+    },
+    {
+      "key": "basic_pass",
+      "value": "admin",
+      "type": "string"
+    },
+    {
+      "key": "stream_id",
+      "value": "101",
+      "type": "string"
+    },
+    {
+      "key": "alarm_type",
+      "value": "2",
+      "type": "string"
+    },
+    {
+      "key": "device_name",
+      "value": "Parkia-Cube-Lab",
+      "type": "string"
+    }
+  ]
+}
